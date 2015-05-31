@@ -1,4 +1,4 @@
-package com.kirana.user.utils;
+package com.kirana.controller.utils;
 
 import java.util.HashMap;
 import java.util.Iterator;

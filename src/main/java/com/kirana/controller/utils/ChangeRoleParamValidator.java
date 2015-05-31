@@ -7,6 +7,7 @@ package com.kirana.controller.utils;
 
 import com.kirana.utils.GlobalConfig;
 import org.springframework.validation.Errors;
+import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 /**
@@ -28,19 +29,10 @@ public class ChangeRoleParamValidator implements Validator{
 	    {
 	    	ChangeRoleParam changeRole = (ChangeRoleParam)obj;
 
-	        if(changeRole.getUserName() ==null || changeRole.getUserName().trim().length()==0)
-                {
-                    errors.rejectValue("UserName", "username.required","username parameter issing");
-                }
-                else if(changeRole.getUserToken()==null || changeRole.getUserToken().trim().length()==0)
-                {
-                    errors.rejectValue("ApiToken", "ApiToken.required","ApiToken missing");
-                }
-                else if(changeRole.getUserRole()==null || changeRole.getUserRole().trim().length()==0)
-                {
-                    errors.rejectValue("userRole", "Role.required","Role.required");
-                }
-                else
+                ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userToken","error code not defined", "ApiToken.required");
+                ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userRole","error code not defined", "Role.required");
+	         
+                if(!errors.hasErrors())
                 {
                         boolean roleMatches=false;
                         for (String USERROLE : GlobalConfig.USERROLES) {

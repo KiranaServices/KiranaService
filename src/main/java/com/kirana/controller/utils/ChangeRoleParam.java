@@ -15,7 +15,8 @@ public class ChangeRoleParam implements Serializable{
 
     private String userToken;
     private String userRole;
-    private String userName;
+    private int userId;
+
 
     public String getUserToken() {
         return userToken;
@@ -33,13 +34,12 @@ public class ChangeRoleParam implements Serializable{
         this.userRole = userRole;
     }
 
-    public String getUserName() {
-        return userName;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
-    
     
 }

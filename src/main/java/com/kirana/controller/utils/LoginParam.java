@@ -9,24 +9,24 @@ import java.util.Map;
 
 public class LoginParam implements Serializable {
 	
-	public LoginParam(String userName,String passWord)
+	public LoginParam(String email,String password)
     {
-        this.userName=userName;
-        this.passWord=passWord;
+        this.email=email;
+        this.password=password;
     }
-    private String passWord;
-    private String userName;
-	public String getPassWord() {
-		return passWord;
+    private String password;
+    private String email;
+	public String getPassword() {
+		return password;
 	}
-	public void setPassWord(String passWord) {
-		this.passWord = passWord;
+	public void setPassword(String password) {
+		this.password = password;
 	}
-	public String getUserName() {
-		return userName;
+	public String getEmail() {
+		return email;
 	}
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
         

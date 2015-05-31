@@ -5,6 +5,7 @@
  */
 package com.kirana.services;
 
+import com.kirana.controller.utils.Authorization;
 import com.kirana.model.User;
 import java.util.List;
 
@@ -24,9 +25,14 @@ public interface UserServices {
     
     public User getLoginInfo(String email,String password) throws Exception;
     
-    public User getUsernfo(String userName,String userToken) throws Exception;
+    public User getUsernfo(String userToken) throws Exception;
     
     public boolean updateUser(User user) throws Exception;
+    
+    public User isAuthenticatedUser(String userToken,Authorization queryName) throws Exception;
+    
+    public boolean CheckIfUserExistByName(String userName) throws Exception ;
+    public boolean CheckIfUserExistByMail(String email) throws Exception ;
     
 //    public List<String> get
 

@@ -19,9 +19,7 @@ public class Response implements Serializable {
 	}
         
         public Response(int majorCode,Object obj) {
-            this.minorCode = minorCode;
             this.majorCode = majorCode;
-	    this.message = message;
             this.data=obj;
 	}
         

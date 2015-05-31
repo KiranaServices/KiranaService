@@ -17,8 +17,18 @@
         <context:component-scan base-package="com.kirana.controller" />
 	<mvc:annotation-driven />
 
+<!--        <context:annotation-config />
+        <mvc:default-servlet-handler/>-->
+    <!--<bean class="com.mangofactory.swagger.configuration.SpringSwaggerConfig" />-->
+    
+    <bean class="com.kirana.swagger.ApplicationSwaggerConfig"/>
         
-        
+    
+    <!-- Direct static mappings -->
+<!--<mvc:resources mapping="*.html" location="/"/>-->
+<mvc:resources mapping="index.html" location="classpath:/WEB-INF/swagger/"/>
+<!-- Serve static content-->
+<mvc:default-servlet-handler/>
 <!--     Enables swgger ui
     <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/"/>
     <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>
@@ -44,6 +54,7 @@
 			<list>
 				<!--<value>com.beingjavaguys.model.Employee</value>-->
                                 <value>com.kirana.model.User</value>
+                                <value>com.kirana.model.Shop</value>
 			</list>
 		</property>
 		<property name="hibernateProperties">
@@ -67,7 +78,9 @@
         
         
         <bean id="userDao" class="com.kirana.dao.UserDaoImpl"></bean>
+        <bean id="entitydao" class="com.kirana.dao.ShopDaoImpl"></bean>
 	<bean id="userServices" class="com.kirana.services.UserServicesImpl"></bean>
+        <bean id="shopServices" class="com.kirana.services.ShopServicesImpl"></bean>
         
         
 <!--         <beans:bean id="encoder" 

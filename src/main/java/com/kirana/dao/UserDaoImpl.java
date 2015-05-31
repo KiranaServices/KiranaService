@@ -29,7 +29,7 @@ public class UserDaoImpl implements UserDao {
     Transaction tx = null;
 
     @Override
-    public boolean addEntity(User user) throws Exception {
+    public boolean addUser(User user) throws Exception {
         session = sessionFactory.openSession();
         tx = session.beginTransaction();
         session.save(user);
@@ -40,7 +40,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User getEntityById(long id) throws Exception {
+    public User getUserById(long id) throws Exception {
         session = sessionFactory.openSession();
         User user = (User) session.get(User.class, new Long(id));
         tx = session.getTransaction();
@@ -51,7 +51,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<User> getEntityList() throws Exception {
+    public List<User> getUserList() throws Exception {
         session = sessionFactory.openSession();
         tx = session.beginTransaction();
         List<User> userList = session.createCriteria(User.class).list();
@@ -61,7 +61,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public boolean deleteEntity(long id) throws Exception {
+    public boolean deleteUser(long id) throws Exception {
         session = sessionFactory.openSession();
         Object o = session.load(User.class, id);
         tx = session.getTransaction();
@@ -91,12 +91,6 @@ public class UserDaoImpl implements UserDao {
             { 
                 log.warn(ex);
             }
-
-
-    //        results.stream().forEach((result) -> {
-    //            System.out.println("result :"+result);
-    //        });
-
         }
         finally
         {
@@ -106,14 +100,13 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User getUsernfo(String userName, String userToken) throws Exception {
+    public User getUsernfo(String userToken) throws Exception {
         session = sessionFactory.openSession();
         User user=null;
         try
         {    
-            String hql = "FROM User  where userName=:userName and userToken=:token";
+            String hql = "FROM User  where userToken=:token";
             Query query = session.createQuery(hql);
-            query.setParameter("userName",userName);
             query.setParameter("token",userToken);
             List u = query.list();
             try
@@ -152,6 +145,60 @@ public class UserDaoImpl implements UserDao {
             session.close();
         }
         return success;
+    }
+
+    @Override
+    public User CheckIfUserExistByName(String userName) throws Exception {
+        session = sessionFactory.openSession();
+         User user=null;
+        try
+        {    
+            String hql = "FROM User  where username=:username";
+            Query query = session.createQuery(hql);
+            query.setParameter("username",userName);
+
+            List u = query.list();
+            try
+            {
+                 user = (User)u.get(0);
+            }
+            catch(IndexOutOfBoundsException ex)
+            { 
+                log.warn(ex);
+            }
+        }
+        finally
+        {
+        session.close();
+        }
+        return user;
+    }
+    
+    @Override
+    public User CheckIfUserExistByMail(String email) throws Exception {
+        session = sessionFactory.openSession();
+         User user=null;
+        try
+        {    
+            String hql = "FROM User  where email=:email";
+            Query query = session.createQuery(hql);
+            query.setParameter("email",email);
+
+            List u = query.list();
+            try
+            {
+                 user = (User)u.get(0);
+            }
+            catch(IndexOutOfBoundsException ex)
+            { 
+                log.warn(ex);
+            }
+        }
+        finally
+        {
+        session.close();
+        }
+        return user;
     }
 
 }

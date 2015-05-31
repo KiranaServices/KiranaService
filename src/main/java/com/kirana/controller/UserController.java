@@ -1,9 +1,12 @@
 package com.kirana.controller;
 
+import com.kirana.controller.utils.AuthenticationException;
+import com.kirana.controller.utils.Authorization;
+import com.kirana.controller.utils.AuthorizationException;
 import com.kirana.controller.utils.ChangeRoleParam;
 import com.kirana.controller.utils.ChangeRoleParamValidator;
 import com.kirana.utils.Response;
-import com.kirana.controller.utils.RegisterParamValidator;
+import com.kirana.controller.utils.UserRegisterParamValidator;
 import com.kirana.model.User;
 import com.kirana.services.UserServices;
 import java.text.DateFormat;
@@ -11,7 +14,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,8 +23,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.kirana.controller.utils.LoginParam;
 import com.kirana.controller.utils.LoginParamValidator;
+import com.kirana.model.Shop;
 import com.kirana.utils.GlobalConfig;
 import com.kirana.utils.ParameterException;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * Handles requests for the application home page.
  */
 @Controller
+@Api(value="user", description="user operations")
 @RequestMapping("/v1/user")
 public class UserController {
 
@@ -51,46 +58,90 @@ public class UserController {
      * Simply selects the home view to render by returning its name.
      *
      * @param locale
-     * @param model
      * @return
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String home(Locale locale, Model model) {
+    public @ResponseBody Object home(Locale locale) {
         String version = "N/A";
         Date date = new Date();
         DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
         String formattedDate = dateFormat.format(date);
-        log.info("Welcome home (UserController) ! The client locale is {}. + version :- " + version);
-        model.addAttribute("serverTime", formattedDate + " sdfsdf Version :- " + version);
-        return "home";
+        String result = "Welcome home (UserController) ! The client locale is {}. + version :- " + version;
+        log.info(result);
+        Shop shop = new Shop();
+        shop.setAddress("sfsF");
+        shop.setName("dfdfdsf");
+        shop.setServiceCharge(23.12f);
+        shop.setServiceTax(34.2f);
+        shop.setTin("sadfdsfs343");
+        shop.setType("hotel");
+        shop.setVat(14.4f);
+        
+        User user = new User();
+        
+        user.setEmail("admin@gmail.com");
+        user.setPassword("admin@123");
+        user.setPhone("7411545097");
+        user.setState("kerala");
+        user.setStreet("thrissur");
+        user.setUserName("admin");
+        
+        return user;
     }
 
 
-    
-    @RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
+    @ApiOperation(value="delete operations")
+    @RequestMapping(value = "delete/{id}", method = RequestMethod.DELETE)
     public @ResponseBody
-    ResponseEntity<Response> deleteUser(@PathVariable("id") long id) {
+    ResponseEntity<Response> deleteUser(@PathVariable("id") long id,@RequestParam("userToken") String userToken) {
 
         try {
+            if(userToken!=null && userToken.trim().length()==0)
+                        throw new ParameterException("Query Syntax wrong");
+                    userServices.isAuthenticatedUser(userToken,Authorization.USER_DELETE);
             userServices.deleteEntity(id);
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(), "User deleted Successfully !"), HttpStatus.OK);
-        } catch (Exception e) {
-            log.error(e, e);
-            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        }catch (ParameterException pe){
+                log.warn(pe);
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),pe.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            catch (AuthenticationException ate){
+                log.warn(ate);
+                return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(),ate.getMessage()), HttpStatus.UNAUTHORIZED);
+            }
+            catch (AuthorizationException aue){
+                log.warn(aue);
+                return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(),aue.getMessage()), HttpStatus.FORBIDDEN);
+            }  catch (Exception e) {
+                log.error(e,e);
+                return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
 
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public @ResponseBody
-    ResponseEntity<Response> getUser(@PathVariable("id") long id) {
+    ResponseEntity<Response> getUser(@PathVariable("id") long id,@RequestParam("userToken") String userToken) {
             
             try {
-                    
+                    if(userToken!=null && userToken.trim().length()==0)
+                        throw new ParameterException("Query Syntax wrong");
+                    userServices.isAuthenticatedUser(userToken,Authorization.USER_LIST);
                     User user = userServices.getEntityById(id);
                     System.out.println("user :"+user.toString());
                     return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,user), HttpStatus.OK);
-            } catch (Exception e) {
+            }catch (ParameterException pe){
+                log.warn(pe);
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),pe.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            catch (AuthenticationException ate){
+                log.warn(ate);
+                return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(),ate.getMessage()), HttpStatus.UNAUTHORIZED);
+            }
+            catch (AuthorizationException aue){
+                log.warn(aue);
+                return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(),aue.getMessage()), HttpStatus.FORBIDDEN);
+            }  catch (Exception e) {
                 log.error(e,e);
                 return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -100,11 +151,27 @@ public class UserController {
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<Response>        
-     getUser() {
+     getUser(@RequestParam("userToken") String userToken) {
             try {
-                    List<User> userList = userList = userServices.getEntityList();
+                    if(userToken!=null && userToken.trim().length()==0)
+                        throw new ParameterException("Query Syntax wrong");
+                    List<User> userList;
+                    userServices.isAuthenticatedUser(userToken,Authorization.USER_LISTALL);
+                    userList = userServices.getEntityList();
                     return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,userList), HttpStatus.OK);
-            } catch (Exception e) {
+            }catch (ParameterException pe){
+                log.warn(pe);
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),pe.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            catch (AuthenticationException ate){
+                log.warn(ate);
+                return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(),ate.getMessage()), HttpStatus.UNAUTHORIZED);
+            }
+            catch (AuthorizationException aue){
+                log.warn(aue);
+                return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(),aue.getMessage()), HttpStatus.FORBIDDEN);
+            }   
+            catch (Exception e) {
                 log.error(e,e);
                 return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -128,12 +195,11 @@ public class UserController {
             User user = userServices.getLoginInfo(email,passWord);
             if(user!=null)
             {
-                
                 return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,user), HttpStatus.OK);
             }
             else
             {
-                 return new ResponseEntity<>(new Response(HttpStatus.NOT_FOUND.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.NOT_FOUND);
+                 return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.UNAUTHORIZED);
             }  
         } catch (Exception ex) {
             log.error(ex,ex);
@@ -151,9 +217,11 @@ public class UserController {
         
         try {
             BeanPropertyBindingResult result = new BeanPropertyBindingResult(user, "register");
-            ValidationUtils.invokeValidator(new RegisterParamValidator(), user, result);
+            ValidationUtils.invokeValidator(new UserRegisterParamValidator(userServices), user, result);
             if (result.getErrorCount() >= 1) {
-                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),new ParameterException(result.getAllErrors().toString())), HttpStatus.BAD_REQUEST);
+                log.error("user :"+user.toString());
+                log.error("error :"+result.getAllErrors().toString());
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
             }
             userServices.addEntity(user) ;
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,user), HttpStatus.OK);
@@ -189,29 +257,33 @@ public class UserController {
             if (result.getErrorCount() >= 1) {
                 return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),new ParameterException(result.getAllErrors().toString())), HttpStatus.BAD_REQUEST);
             }
-            
-            
-            
             //authentication and authorization 
-            
-            User user = userServices.getUsernfo(param.getUserName(),param.getUserToken());
-            if(user!=null )
-            {
+            userServices.isAuthenticatedUser(param.getUserToken(),Authorization.USER_CHANGEROLE);
+            User user = userServices.getEntityById(param.getUserId());
+            if(user!=null)
+            {    
                 user.setUserRole(param.getUserRole());
                 if(userServices.updateUser(user))
                     return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,user), HttpStatus.OK);
                 else
-                    return new ResponseEntity<>(new Response(HttpStatus.NOT_MODIFIED.value(),GlobalConfig.MINOR_OK,GlobalConfig.FAILURE_MESSAGE,user), HttpStatus.NOT_MODIFIED);
+                    return new ResponseEntity<>(new Response(HttpStatus.NOT_MODIFIED.value(),GlobalConfig.MINOR_OK,GlobalConfig.FAILURE_MESSAGE,user), HttpStatus.NOT_MODIFIED);            
             }
             else
-            { 
-                return new ResponseEntity<>(new Response(HttpStatus.NOT_FOUND.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.NOT_FOUND);
+            {
+                return new ResponseEntity<>(new Response(HttpStatus.NOT_FOUND.value(),GlobalConfig.MINOR_OK,GlobalConfig.FAILURE_MESSAGE,user), HttpStatus.NOT_FOUND);
             }
-            
-        } catch (Exception ex) {
+        }catch (AuthenticationException ate){
+            log.warn(ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.UNAUTHORIZED);
+        }
+        catch (AuthorizationException aue){
+            log.warn(aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.FORBIDDEN);
+        }
+        catch (Exception ex) {
             log.error(ex,ex);
             return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+        
 }

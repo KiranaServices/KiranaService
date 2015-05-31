@@ -1,20 +1,24 @@
 package com.kirana.model;
 
-import com.google.gson.annotations.Expose;
+//import com.google.gson.annotations.Expose;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import org.codehaus.jackson.annotate.JsonIgnore;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "users")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -27,16 +31,12 @@ public class User implements Serializable {
     @Column(name = "username",unique = true)
     private String userName;
 
-
-    
-    @Column(name = "password_hash")
-    @Expose(deserialize = false)
     @JsonIgnore
+    @Column(name = "password_hash")
     private String password;
     
     @Column(name = "user_token",unique = true)
     private String userToken;
-    
     @Column(name = "user_role")
     private String userRole;
     
@@ -51,12 +51,14 @@ public class User implements Serializable {
 
     @Column(name = "state")
     private String state;
+    
+    @ManyToOne
+    @JoinColumn(name="shop_id")
+    private Shop shop;
 
-    @Column(name = "tin_no")
-    private String TIN;
-
-    @Column(name = "website")
-    private String website;
+    public User() {
+        this.userRole = "USER";
+    }
 
     public String getUserToken() {
         return userToken;
@@ -74,8 +76,7 @@ public class User implements Serializable {
         this.userRole = userRole;
     }
 
-
-
+    @JsonProperty
     public void setPassword(String password) {
         this.password = password;
     }
@@ -85,12 +86,7 @@ public class User implements Serializable {
         return this.password ;
     }
 
-    public String getPass() {
-        return this.password ;
-    }
-    
-    
-    
+        
     public String getStreet() {
         return street;
     }
@@ -105,22 +101,6 @@ public class User implements Serializable {
 
     public void setState(String state) {
         this.state = state;
-    }
-
-    public String getTIN() {
-        return TIN;
-    }
-
-    public void setTIN(String TIN) {
-        this.TIN = TIN;
-    }
-
-    public String getWebsite() {
-        return website;
-    }
-
-    public void setWebsite(String website) {
-        this.website = website;
     }
 
     public long getId() {
@@ -156,9 +136,18 @@ public class User implements Serializable {
         this.phone = phone;
     }
 
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
+
+    
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", userName=" + userName + ", password=" + password + ", userToken=" + userToken + ", userRole=" + userRole + ", email=" + email + ", phone=" + phone + ", street=" + street + ", state=" + state + ", TIN=" + TIN + ", website=" + website + '}';
+        return "User{" + "id=" + id + ", userName=" + userName + ", password=" + password + ", userToken=" + userToken + ", userRole=" + userRole + ", email=" + email + ", phone=" + phone + ", street=" + street + ", state=" + state + '}';
     }
     
     

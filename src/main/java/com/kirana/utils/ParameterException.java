@@ -17,5 +17,8 @@ public class ParameterException extends RuntimeException implements Serializable
 	    super(msg);
 	    
 	}
-
+        public ParameterException(String msg,boolean d) {
+	    super(msg);
+	    
+	}
 }
