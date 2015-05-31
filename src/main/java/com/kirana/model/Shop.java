@@ -57,11 +57,14 @@ public class Shop implements Serializable {
     
     @JsonIgnore
     @OneToMany(mappedBy="shop")
-//    @ca
     private Set<User> user;
     
     
-
+    @OneToMany(mappedBy="shop")
+    private Set<Product> product;
+    
+    
+    
     public int getId() {
         return id;
     }

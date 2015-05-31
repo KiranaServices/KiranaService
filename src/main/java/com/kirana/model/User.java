@@ -136,10 +136,12 @@ public class User implements Serializable {
         this.phone = phone;
     }
 
+    @JsonProperty
     public Shop getShop() {
         return shop;
     }
 
+    @JsonIgnore
     public void setShop(Shop shop) {
         this.shop = shop;
     }

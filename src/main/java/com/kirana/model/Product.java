@@ -9,6 +9,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 
@@ -22,7 +24,7 @@ public class Product implements Serializable {
     @Id
     @GeneratedValue
     @Column(name = "id")
-    private String id;
+    private int id;
 
     @Column(name = "product_id",unique = true)
     private String product_id;
@@ -39,14 +41,29 @@ public class Product implements Serializable {
     
     @Column(name = "tax_bracket",precision = 2)
     private float taxBracket;
+    
+    @ManyToOne
+    @JoinColumn(name="shop_id")
+    private Shop shop;
 
-    public String getId() {
+    public Shop getShop() {
+        return shop;
+    }
+
+    
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
+
+
 
     public String getProduct_id() {
         return product_id;

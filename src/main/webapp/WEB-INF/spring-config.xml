@@ -23,20 +23,15 @@
     
     <bean class="com.kirana.swagger.ApplicationSwaggerConfig"/>
         
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <property name="maxUploadSize" value="50000000"/>
+</bean>
     
     <!-- Direct static mappings -->
 <!--<mvc:resources mapping="*.html" location="/"/>-->
 <mvc:resources mapping="index.html" location="classpath:/swagger/"/>
 <!-- Serve static content-->
 <mvc:default-servlet-handler/>
-<!--     Enables swgger ui
-    <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/"/>
-    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>
-
-     Include a swagger configuration
-    <bean name="/applicationSwaggerConfig" class="springfoxdemo.xml.swagger.ApplicationSwaggerConfig"/>-->
-    
-    
     
         
 	<bean id="dataSource"
@@ -55,14 +50,17 @@
 				<!--<value>com.beingjavaguys.model.Employee</value>-->
                                 <value>com.kirana.model.User</value>
                                 <value>com.kirana.model.Shop</value>
+                                <value>com.kirana.model.Product</value>
 			</list>
 		</property>
 		<property name="hibernateProperties">
 			<props>
 				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
 				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+                                <prop key="hibernate.jdbc.batch_size" >30</prop>
 			</props>
 		</property>
+               
 	</bean>
 
 	<bean id="txManager"
