@@ -46,7 +46,7 @@ public class ApplicationSwaggerConfig {
         return new SwaggerSpringMvcPlugin(this.springSwaggerConfig)
                 .apiInfo(new ApiInfo(
                                 "Kiran Service API",
-                                "This app is for education, training purpose. It represents model of landlords and apartments for rent",
+                                "Contains api for kirana services",
                                 null,
                                 null,
                                 null,

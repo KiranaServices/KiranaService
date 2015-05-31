@@ -160,10 +160,7 @@ public class ShopController {
      * @param userToken
      * @return
      */
-    @ApiOperation(value = "Create new Landlord", notes = "Creates new Landlord")
-    @ApiResponses(value = {
-        @ApiResponse(code = 400, message = "Fields are with validation errors"),
-        @ApiResponse(code = 201, message = "")})
+
     @RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody
     ResponseEntity<Response> CreateShop(@Validated @RequestBody Shop shop, @RequestParam("userToken") String userToken) {
