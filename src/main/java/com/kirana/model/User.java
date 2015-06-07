@@ -4,6 +4,7 @@ package com.kirana.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 
 import javax.persistence.Column;
@@ -23,6 +24,7 @@ public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @ApiModelProperty(hidden = true, required=false)
     @Id
     @GeneratedValue
     @Column(name = "id")
@@ -35,8 +37,10 @@ public class User implements Serializable {
     @Column(name = "password_hash")
     private String password;
     
+    @ApiModelProperty(hidden = true, required=false)
     @Column(name = "user_token",unique = true)
     private String userToken;
+    
     @Column(name = "user_role")
     private String userRole;
     
@@ -52,6 +56,7 @@ public class User implements Serializable {
     @Column(name = "state")
     private String state;
     
+    @ApiModelProperty(hidden = true,value = "Shop info of this user", required=false)
     @ManyToOne
     @JoinColumn(name="shop_id")
     private Shop shop;

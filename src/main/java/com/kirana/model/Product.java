@@ -32,7 +32,6 @@ public class Product implements Serializable {
     @Column(name = "quantity",precision = 2)
     private float quantity;
 
-    @JsonIgnore
     @Column(name = "price",precision = 2)
     private float price;
     
@@ -42,6 +41,7 @@ public class Product implements Serializable {
     @Column(name = "tax_bracket",precision = 2)
     private float taxBracket;
     
+
     @ManyToOne
     @JoinColumn(name="shop_id")
     private Shop shop;

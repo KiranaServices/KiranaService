@@ -1,13 +1,6 @@
 package com.kirana.controller;
 
-import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
-import com.kirana.controller.utils.AuthenticationException;
-import com.kirana.controller.utils.Authorization;
-import com.kirana.controller.utils.AuthorizationException;
-import com.kirana.controller.utils.ShopRegisterParamValidator;
-import com.kirana.utils.Response;
-import com.kirana.model.User;
 import com.kirana.services.UserServices;
 import java.text.DateFormat;
 import java.util.Date;
@@ -19,28 +12,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.kirana.model.Shop;
 import com.kirana.services.ShopServices;
-import com.kirana.utils.GlobalConfig;
-import com.kirana.utils.ParameterException;
 import com.wordnik.swagger.annotations.Api;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 /**

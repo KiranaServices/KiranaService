@@ -3,6 +3,7 @@ package com.kirana.model;
 //import com.google.gson.annotations.Expose;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ import javax.validation.constraints.NotNull;
 
 public class Shop implements Serializable {
 
-    
+    @ApiModelProperty(hidden = true, required=false)
     @Id
     @GeneratedValue
     @Column(name = "id")
@@ -55,11 +56,12 @@ public class Shop implements Serializable {
     @Column(name = "website")
     private String website;
     
+    @ApiModelProperty(hidden = true, required=false)
     @JsonIgnore
     @OneToMany(mappedBy="shop")
     private Set<User> user;
     
-    
+    @ApiModelProperty(hidden = true, required=false)
     @OneToMany(mappedBy="shop")
     private Set<Product> product;
     
