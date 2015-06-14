@@ -22,7 +22,7 @@ import javax.persistence.Table;
 @Table(name = "users")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 
-public class User implements Serializable {
+public class User  implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -43,6 +43,7 @@ public class User implements Serializable {
     @Column(name = "user_token",unique = true)
     private String userToken;
     
+    @ApiModelProperty(hidden = true, required=false)
     @Column(name = "user_role")
     private String userRole;
     
