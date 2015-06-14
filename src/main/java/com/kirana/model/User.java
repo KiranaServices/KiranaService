@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import javax.persistence.CascadeType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -58,7 +60,7 @@ public class User implements Serializable {
     
     @ApiModelProperty(hidden = true,value = "Shop info of this user", required=false)
     @ManyToOne
-    @JoinColumn(name="shop_id")
+    @JoinColumn(name="shop_id",referencedColumnName = "id")
     private Shop shop;
 
     public User() {
@@ -141,21 +143,21 @@ public class User implements Serializable {
         this.phone = phone;
     }
 
-    @JsonProperty
     public Shop getShop() {
         return shop;
     }
 
-    @JsonIgnore
     public void setShop(Shop shop) {
         this.shop = shop;
     }
 
-    
-    @Override
-    public String toString() {
-        return "User{" + "id=" + id + ", userName=" + userName + ", password=" + password + ", userToken=" + userToken + ", userRole=" + userRole + ", email=" + email + ", phone=" + phone + ", street=" + street + ", state=" + state + '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "User{" + "id=" + id + ", userName=" + userName + ", password=" + password + ", userToken=" + userToken + ", userRole=" + userRole + ", email=" + email + ", phone=" + phone + ", street=" + street + ", state=" + state + ", shop=" + shop + '}';
+//    }
+//
+//    
+ 
     
     
 }

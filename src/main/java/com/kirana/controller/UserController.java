@@ -57,40 +57,39 @@ public class UserController {
     /**
      * Simply selects the home view to render by returning its name.
      *
-     * @param locale
+     * @param userToken
      * @return
      */
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public @ResponseBody Object home(Locale locale) {
-        String version = "N/A";
-        Date date = new Date();
-        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
-        String formattedDate = dateFormat.format(date);
-        String result = "Welcome home (UserController) ! The client locale is {}. + version :- " + version;
-        log.info(result);
-        Shop shop = new Shop();
-        shop.setAddress("sfsF");
-        shop.setName("dfdfdsf");
-        shop.setServiceCharge(23.12f);
-        shop.setServiceTax(34.2f);
-        shop.setTin("sadfdsfs343");
-        shop.setType("hotel");
-        shop.setVat(14.4f);
-        
-        User user = new User();
-        
-        user.setEmail("admin@gmail.com");
-        user.setPassword("admin@123");
-        user.setPhone("7411545097");
-        user.setState("kerala");
-        user.setStreet("thrissur");
-        user.setUserName("admin");
-        
-        return user;
+    
+    @ApiOperation(value = "View currently logged user")
+    @RequestMapping(value = "/own", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<Response> home(@RequestParam("userToken") String userToken) {
+        try {
+                if(userToken!=null && userToken.trim().length()==0)
+                    throw new ParameterException("Query Syntax wrong");
+                User user = userServices.isAuthenticatedUser(userToken,Authorization.USER_OWN);
+                log.info("user : "+user.toString());
+                user.getShop();
+                return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,user), HttpStatus.OK);
+            }catch (ParameterException pe){
+                log.warn(pe);
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),pe.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            catch (AuthenticationException ate){
+                log.warn(ate);
+                return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(),ate.getMessage()), HttpStatus.UNAUTHORIZED);
+            }
+            catch (AuthorizationException aue){
+                log.warn(aue);
+                return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(),aue.getMessage()), HttpStatus.FORBIDDEN);
+            }  catch (Exception e) {
+                log.error(e,e);
+                return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
     }
 
 
-    @ApiOperation(value="delete operations")
+    @ApiOperation(value = "(SUPERADMIN)Delete  user by id")
     @RequestMapping(value = "delete/{id}", method = RequestMethod.DELETE)
     public @ResponseBody
     ResponseEntity<Response> deleteUser(@PathVariable("id") long id,@RequestParam("userToken") String userToken) {
@@ -119,6 +118,7 @@ public class UserController {
 
     }
     
+    @ApiOperation(value = "(SUPERADMIN)View  user by id")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<Response> getUser(@PathVariable("id") long id,@RequestParam("userToken") String userToken) {
@@ -147,7 +147,7 @@ public class UserController {
             }
     }
     
-    
+    @ApiOperation(value = "(SUPERADMIN)List all users")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<Response>        
@@ -189,7 +189,7 @@ public class UserController {
             BeanPropertyBindingResult result = new BeanPropertyBindingResult(param, "login");
             ValidationUtils.invokeValidator(new LoginParamValidator(), param, result);
             if (result.getErrorCount() >= 1) {
-                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),new ParameterException(result.getAllErrors().toString())), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
             }
             
             User user = userServices.getLoginInfo(email,passWord);
@@ -246,6 +246,8 @@ public class UserController {
 //        return "not implemented yet";
 //    }
 //
+    
+    @ApiOperation(value = "(SUPERADMIN)Change  role of an user")
     @RequestMapping(value = "/change-role", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody
     ResponseEntity<Response> changeRole(@RequestBody ChangeRoleParam param) {

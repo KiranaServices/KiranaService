@@ -13,12 +13,27 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-
+/**
+ *
+ * @author nikhilvs
+ */
 @Entity
 @Table(name = "products")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 
 public class Product implements Serializable {
+
+    public Product() {
+    }
+
+    public Product(String product_id, String quantity, String price, String discount, String taxBracket, Shop shop) throws NumberFormatException {
+        this.product_id = product_id;
+        this.quantity = Float.valueOf(quantity);
+        this.price = Float.valueOf(price);
+        this.discount = Float.valueOf(discount);
+        this.taxBracket = Float.valueOf(taxBracket);
+        this.shop = shop;
+    }
 
     
     @Id
@@ -42,6 +57,7 @@ public class Product implements Serializable {
     private float taxBracket;
     
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="shop_id")
     private Shop shop;

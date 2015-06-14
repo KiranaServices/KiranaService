@@ -5,8 +5,6 @@
  */
 package com.kirana.utils;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author nikhilvs
@@ -14,10 +12,11 @@ import java.util.ArrayList;
 public final class GlobalConfig {
     
     public static final int MINOR_OK=1000;
+    public static final int BATCH_INSERT_SIZE=30; //same
     
     public static final String SUCCESS_MESSAGE="Success";
     public static final String FAILURE_MESSAGE="Failure";
-    
+    public static final String PRODUCT_CSV_FIRST_LINE="product_id,quantity,price,discount,tax_bracket";
     
     public static  final String[] USERROLES = {"USER","ADMIN"};
     

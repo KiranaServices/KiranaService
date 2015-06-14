@@ -22,6 +22,7 @@ import com.kirana.services.ShopServices;
 import com.kirana.utils.GlobalConfig;
 import com.kirana.utils.ParameterException;
 import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
- * Handles requests for the application home page.
+ * Handles requests for the application shop page.
  */
 @Controller
 @Api(value = "shop", description = "shop operations", produces = "application/json")
@@ -54,28 +55,43 @@ public class ShopController {
     AuthenticationManager manager = null;
 
     /**
-     * Simply selects the home view to render by returning its name.
+     * Simply selects the shop view to render by returning its name.
      *
-     * @param locale
+     * @param userToken
      * @return
      */
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String home(Locale locale) {
-        String version = "N/A";
-        Date date = new Date();
-        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
-        String formattedDate = dateFormat.format(date);
-        String result = "Welcome home (ShopController) ! The client locale is {}. + version :- " + version;
-        log.info(result);
-        return result;
+    
+    @ApiOperation(value = "View shop of currently logged user")
+    @RequestMapping(value = "/own", method = RequestMethod.GET)
+    public ResponseEntity<Response> shop(@RequestParam("userToken") String userToken) {
+        try {
+            if (userToken != null && userToken.trim().length() == 0) {
+                throw new ParameterException("Query Syntax wrong");
+            }
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.SHOP_OWN);
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(), GlobalConfig.MINOR_OK, GlobalConfig.SUCCESS_MESSAGE, user.getShop()), HttpStatus.OK);
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @RequestMapping(value = "delete/{id}", method = RequestMethod.GET)
+    @ApiOperation(value = "(SUPERADMIN)Delete an shop by id")
+    @RequestMapping(value = "delete/{id}", method = RequestMethod.DELETE)
     public @ResponseBody
     ResponseEntity<Response> deleteShop(@PathVariable("id") long id, @RequestParam("userToken") String userToken) {
 
         try {
-            if (userToken != null && userToken.trim().length() != 0) {
+            if (userToken != null && userToken.trim().length() == 0) {
                 throw new ParameterException("Query Syntax wrong");
             }
             userServices.isAuthenticatedUser(userToken, Authorization.SHOP_DELETE);
@@ -97,12 +113,13 @@ public class ShopController {
 
     }
 
+    @ApiOperation(value = "(SUPERADMIN)List shop by  id")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<Response> getShop(@PathVariable("id") long id, @RequestParam("userToken") String userToken) {
 
         try {
-            if (userToken != null && userToken.trim().length() != 0) {
+            if (userToken != null && userToken.trim().length() == 0) {
                 throw new ParameterException("Query Syntax wrong");
             }
             userServices.isAuthenticatedUser(userToken, Authorization.SHOP_LIST);
@@ -124,12 +141,13 @@ public class ShopController {
         }
     }
 
+    @ApiOperation(value = "(SUPERADMIN)List all shops")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public @ResponseBody
     ResponseEntity<Response>
             getAllShop(@RequestParam("userToken") String userToken) {
         try {
-            if (userToken != null && userToken.trim().length() != 0) {
+            if (userToken != null && userToken.trim().length() == 0) {
                 throw new ParameterException("Query Syntax wrong");
             }
             List<Shop> shopList;
@@ -137,7 +155,6 @@ public class ShopController {
             shopList = shopServices.getShopList();
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(), GlobalConfig.MINOR_OK, GlobalConfig.SUCCESS_MESSAGE, shopList), HttpStatus.OK);
         } catch (ParameterException pe) {
-            log.warn(pe, pe);
             return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (AuthenticationException ate) {
             log.warn(ate, ate);
@@ -167,6 +184,8 @@ public class ShopController {
                 throw new ParameterException("Query Syntax wrong");
             }
             User user = userServices.isAuthenticatedUser(userToken, Authorization.SHOP_REGISTER);
+            if(user.getShop()!=null)
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"User already has one shop"), HttpStatus.BAD_REQUEST);
             //validation
             BeanPropertyBindingResult result = new BeanPropertyBindingResult(shop, "register");
             ValidationUtils.invokeValidator(new ShopRegisterParamValidator(shopServices), shop, result);

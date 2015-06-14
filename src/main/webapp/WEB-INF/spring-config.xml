@@ -77,8 +77,10 @@
         
         <bean id="userDao" class="com.kirana.dao.UserDaoImpl"></bean>
         <bean id="entitydao" class="com.kirana.dao.ShopDaoImpl"></bean>
+        <bean id="productDao" class="com.kirana.dao.ProductDaoImpl"></bean>
 	<bean id="userServices" class="com.kirana.services.UserServicesImpl"></bean>
         <bean id="shopServices" class="com.kirana.services.ShopServicesImpl"></bean>
+        <bean id="productServices" class="com.kirana.services.ProductServicesImpl"></bean>
         
         
 <!--         <beans:bean id="encoder" 

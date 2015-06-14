@@ -6,14 +6,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.Set;
+import javax.persistence.CascadeType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import org.hibernate.Hibernate;
 
 
 
@@ -56,14 +60,24 @@ public class Shop implements Serializable {
     @Column(name = "website")
     private String website;
     
-    @ApiModelProperty(hidden = true, required=false)
+    
     @JsonIgnore
-    @OneToMany(mappedBy="shop")
+    @ApiModelProperty(hidden = true, required=false)
+    @OneToMany(mappedBy="shop",fetch = FetchType.EAGER,cascade = CascadeType.ALL)
     private Set<User> user;
     
+    @JsonIgnore
     @ApiModelProperty(hidden = true, required=false)
     @OneToMany(mappedBy="shop")
     private Set<Product> product;
+
+    public Set<Product> getProduct() {
+        return product;
+    }
+
+    public void setProduct(Set<Product> product) {
+        this.product = product;
+    }
     
     
     
@@ -131,6 +145,7 @@ public class Shop implements Serializable {
         this.vat = vat;
     }
 
+    @JsonIgnore
     public Set<User> getUser() {
         return user;
     }
@@ -149,7 +164,7 @@ public class Shop implements Serializable {
     
     @Override
     public String toString() {
-        return "Shop{" + "id=" + id + ", name=" + name + ", type=" + type + ", address=" + address + ", TIN=" + tin + ", serviceTax=" + serviceTax + ", serviceCharge=" + serviceCharge + ", VAT=" + vat + ", user=" + user + '}';
+        return "Shop{" + "id=" + id + ", name=" + name + ", type=" + type + ", address=" + address + ", TIN=" + tin + ", serviceTax=" + serviceTax + ", serviceCharge=" + serviceCharge + ", VAT=" + vat +'}';
     }
 
 }

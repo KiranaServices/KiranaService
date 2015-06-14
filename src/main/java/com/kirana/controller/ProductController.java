@@ -1,10 +1,15 @@
 package com.kirana.controller;
 
-import au.com.bytecode.opencsv.CSVReader;
+import com.kirana.controller.utils.AuthenticationException;
+import com.kirana.controller.utils.Authorization;
+import com.kirana.controller.utils.AuthorizationException;
+import com.kirana.controller.utils.ProductRegisterParam;
+import com.kirana.controller.utils.ProductRegisterParamValidator;
+import com.kirana.model.Product;
+import com.kirana.model.Shop;
+import com.kirana.model.User;
+import com.kirana.services.ProductServices;
 import com.kirana.services.UserServices;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,13 +18,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.kirana.services.ShopServices;
+import com.kirana.utils.GlobalConfig;
+import com.kirana.utils.ParameterException;
+import com.kirana.utils.Response;
 import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.ValidationUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -37,50 +50,82 @@ public class ProductController {
 
     @Autowired
     private ShopServices shopServices;
+    
+    
+    @Autowired
+    private ProductServices productServices;
 
     AuthenticationManager manager = null;
 
     /**
      * Simply selects the home view to render by returning its name.
-     *
-     * @param locale
+     * @param userToken
      * @return
      */
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String home(Locale locale) {
-        String version = "N/A";
-        Date date = new Date();
-        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
-        String formattedDate = dateFormat.format(date);
-        String result = "Welcome home (ShopController) ! The client locale is {}. + version :- " + version;
-        log.info(result);
-        return result;
+    
+    @ApiOperation(value = "View products of currently logged user")
+    @RequestMapping(value = "/own", method = RequestMethod.GET)
+    public ResponseEntity home(@RequestParam("userToken") String userToken) {
+        
+        try {
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.PRODUCT_OWN);
+            List<Product> userList = new ArrayList<>();
+            Shop shop = user.getShop();
+            
+            userList.addAll(productServices.getProductListByShopId(shop.getId()));
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,userList), HttpStatus.OK);
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
+    @ApiOperation(value = "Product register for an shop, since there are many products in an shop,query expects an csv file", notes = "csv file format --> 'product_id,quantity,price,discount,tax_bracket' \n ex: product_id,quantity,price,discount,tax_bracket\nIDLY,1,10,0,5  ")
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
     public @ResponseBody
-    String handleFileUpload(@RequestParam("userToken") String userToken,
+    ResponseEntity handleFileUpload(@RequestParam("userToken") String userToken,
             @RequestParam("file") MultipartFile file) {
 
-        StringBuilder fileContent = new StringBuilder();
-        if (!file.isEmpty()) {
-            try {
-                File readerFile = File.createTempFile(file.getName(), "1");
-                file.transferTo(readerFile);
-                CSVReader reader = new CSVReader(new FileReader(readerFile));
-                String[] nextLine;
-                while ((nextLine = reader.readNext()) != null) {
-                    log.info(nextLine[0] + ":" + nextLine[1] + ": etc...");
-                    for (String word : nextLine) {
-                        fileContent.append(word).append("\n");
-                    }
+        try {
+            if (!file.isEmpty()) {
+                User user = userServices.isAuthenticatedUser(userToken, Authorization.SHOP_DELETE);
+                if(user.getShop()==null)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
+                StringBuilder fileContent = new StringBuilder();
+                File productsFile = File.createTempFile(file.getName(), "csv");
+                file.transferTo(productsFile);
+                ProductRegisterParam param = new ProductRegisterParam(userToken,productsFile);
+                BeanPropertyBindingResult result = new BeanPropertyBindingResult(param, "login");
+                ValidationUtils.invokeValidator(new ProductRegisterParamValidator(), param, result);
+                if (result.getErrorCount() >= 1) {
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
                 }
-                return "You successfully uploaded " + fileContent + "!";
-            } catch (IOException | IllegalStateException e) {
-                return "You failed to upload " + userToken + " => " + e.getMessage();
+                productServices.addProductBulk(productsFile, user.getShop());
+                return new ResponseEntity<>(new Response(HttpStatus.OK.value(), "Product added Successfully !"), HttpStatus.OK);
+            } else {
+                throw new ParameterException("csv file required");
             }
-        } else {
-            return "You failed to upload " + userToken + " because the file was empty.";
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
