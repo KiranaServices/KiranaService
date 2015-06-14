@@ -90,7 +90,7 @@ public class ProductController {
         }
     }
 
-    @ApiOperation(value = "Product register for an shop, since there are many products in an shop,query expects an csv file", notes = "csv file format --> 'product_id,quantity,price,discount,tax_bracket' \n ex: product_id,quantity,price,discount,tax_bracket\nIDLY,1,10,0,5  ")
+    @ApiOperation(value = "Product register for an shop, since there are many products in an shop,query expects an csv file", notes = "csv file format --> 'product_id,quantity,price,discount,tax_bracket'")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public @ResponseBody
     ResponseEntity handleFileUpload(@RequestParam("userToken") String userToken,
