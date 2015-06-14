@@ -71,7 +71,8 @@ public class ProductController {
             User user = userServices.isAuthenticatedUser(userToken, Authorization.PRODUCT_OWN);
             List<Product> userList = new ArrayList<>();
             Shop shop = user.getShop();
-            
+            if(user.getShop()==null)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
             userList.addAll(productServices.getProductListByShopId(shop.getId()));
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,userList), HttpStatus.OK);
         } catch (ParameterException pe) {
