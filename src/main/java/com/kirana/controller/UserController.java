@@ -224,7 +224,8 @@ public class UserController {
                 return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
             }
             userServices.addEntity(user) ;
-            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,user), HttpStatus.OK);
+            
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,userServices.getUsernfo(user.getUserToken())), HttpStatus.OK);
         } catch (Exception ex) {
             log.error(ex,ex);
             return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(),GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);

@@ -6,11 +6,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
-import javax.persistence.CascadeType;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -58,6 +58,22 @@ public class User  implements Serializable {
 
     @Column(name = "state")
     private String state;
+    
+    @ApiModelProperty(hidden = true,value = "created at", required=false)
+    private java.sql.Timestamp created_at;
+    
+    
+    @ApiModelProperty(hidden = true,value = "last updated at", required=false)
+    private java.sql.Timestamp updated_at;
+    
+    
+    public String getCreated_at() {
+        return  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(created_at.getTime()));
+    }
+
+    public String getUpdated_at() {
+        return  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(updated_at.getTime()));
+    }
     
     @ApiModelProperty(hidden = true,value = "Shop info of this user", required=false)
     @ManyToOne

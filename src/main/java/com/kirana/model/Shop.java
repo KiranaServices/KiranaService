@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Set;
 import javax.persistence.CascadeType;
 
@@ -31,7 +33,7 @@ public class Shop implements Serializable {
     @Id
     @GeneratedValue
     @Column(name = "id")
-    private int id;
+    private long id;
 
     @NotNull
     @Column(name = "name",unique = true,nullable = false)
@@ -70,6 +72,24 @@ public class Shop implements Serializable {
     @ApiModelProperty(hidden = true, required=false)
     @OneToMany(mappedBy="shop")
     private Set<Product> product;
+    
+    
+    
+        @ApiModelProperty(hidden = true,value = "created at", required=false)
+    private java.sql.Timestamp created_at;
+    
+    
+    @ApiModelProperty(hidden = true,value = "last updated at", required=false)
+    private java.sql.Timestamp updated_at;
+    
+    
+    public String getCreated_at() {
+        return  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(created_at.getTime()));
+    }
+
+    public String getUpdated_at() {
+        return  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(updated_at.getTime()));
+    }
 
     public Set<Product> getProduct() {
         return product;
@@ -81,13 +101,11 @@ public class Shop implements Serializable {
     
     
     
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+
 
     public String getName() {
         return name;

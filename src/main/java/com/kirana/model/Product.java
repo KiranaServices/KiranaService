@@ -3,7 +3,10 @@ package com.kirana.model;
 //import com.google.gson.annotations.Expose;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,7 +42,7 @@ public class Product implements Serializable {
     @Id
     @GeneratedValue
     @Column(name = "id")
-    private int id;
+    private long id;
 
     @Column(name = "product_id",unique = true)
     private String product_id;
@@ -61,6 +64,27 @@ public class Product implements Serializable {
     @ManyToOne
     @JoinColumn(name="shop_id")
     private Shop shop;
+    
+    
+    
+    
+        @ApiModelProperty(hidden = true,value = "created at", required=false)
+    private java.sql.Timestamp created_at;
+    
+    
+    @ApiModelProperty(hidden = true,value = "last updated at", required=false)
+    private java.sql.Timestamp updated_at;
+    
+    
+    public String getCreated_at() {
+        return  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(created_at.getTime()));
+    }
+
+    public String getUpdated_at() {
+        return  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(updated_at.getTime()));
+    }
+    
+    
 
     public Shop getShop() {
         return shop;
@@ -71,14 +95,9 @@ public class Product implements Serializable {
         this.shop = shop;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
 
 
     public String getProduct_id() {

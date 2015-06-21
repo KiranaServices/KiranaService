@@ -198,7 +198,7 @@ public class ShopController {
             user.setShop(shop);
 
             if (userServices.updateUser(user)) {
-                return new ResponseEntity<>(new Response(HttpStatus.OK.value(), GlobalConfig.MINOR_OK, GlobalConfig.SUCCESS_MESSAGE, shop), HttpStatus.OK);
+                return new ResponseEntity<>(new Response(HttpStatus.OK.value(), GlobalConfig.MINOR_OK, GlobalConfig.SUCCESS_MESSAGE,userServices.getUsernfo(userToken).getShop()), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new Response(HttpStatus.NOT_MODIFIED.value(), GlobalConfig.MINOR_OK, GlobalConfig.FAILURE_MESSAGE, shop), HttpStatus.NOT_MODIFIED);
             }

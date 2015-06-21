@@ -64,7 +64,7 @@ public class ShopDaoImpl implements ShopDao {
     @Override
     public boolean deleteEntity(long id) throws Exception {
         session = sessionFactory.openSession();
-        Object o = session.load(User.class, id);
+        Object o = session.load(Shop.class, id);
         tx = session.getTransaction();
         session.beginTransaction();
         session.delete(o);

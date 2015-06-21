@@ -67,7 +67,7 @@ public class ProductDaoImpl implements ProductDao {
     @Override
     public boolean deleteProduct(long id) throws Exception {
         session = sessionFactory.openSession();
-        Object o = session.load(User.class, id);
+        Object o = session.load(Product.class, id);
         tx = session.getTransaction();
         session.beginTransaction();
         session.delete(o);
