@@ -29,7 +29,9 @@ public enum Authorization {
     SHOP_LIST_ALL(ADMIN),
     SHOP_LIST(ADMIN),
     PRODUCT_REGISTER(ADMIN,USER),
-    PRODUCT_OWN(ADMIN,USER);
+    PRODUCT_OWN(ADMIN,USER),
+    ORDER_CREATE(ADMIN,USER),
+    ORDER_OWN(ADMIN,USER);
     
     private final UserRole[] roles;
 

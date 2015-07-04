@@ -82,6 +82,10 @@
         <bean id="shopServices" class="com.kirana.services.ShopServicesImpl"></bean>
         <bean id="productServices" class="com.kirana.services.ProductServicesImpl"></bean>
         
+        <bean id="orderServices" class="com.kirana.services.OrderServicesImpl"></bean>
+        <bean id="orderDao" class="com.kirana.dao.OrderDaoImpl"></bean>
+        
+        
         
 <!--         <beans:bean id="encoder" 
 	class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">

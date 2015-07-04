@@ -6,6 +6,8 @@
 package com.kirana.dao;
 
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
@@ -14,7 +16,10 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.kirana.model.Order;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import org.apache.log4j.Logger;
 
 /**
@@ -26,6 +31,11 @@ public class OrderDaoImpl implements OrderDao {
     private static final Logger log = Logger.getLogger(OrderDaoImpl.class);
     private static final AmazonDynamoDBClient dbClient =
         new AmazonDynamoDBClient(new ClasspathPropertiesFileCredentialsProvider());
+    
+    static{
+    dbClient.setRegion(Region.getRegion(Regions.AP_SOUTHEAST_1));     
+    }
+    
 
     @Override
     public boolean addOrder(Order order) throws Exception {
@@ -48,9 +58,26 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Order getOrderByShopId(long id, String createdAt) throws Exception {
+    public List<Order> getOrderByShopId(long shopId) throws Exception {
         DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
-        return mapper.load(Order.class,id,createdAt);
+        
+        Date twoWeeksAgo = new Date();
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String twoWeeksAgoStr = dateFormatter.format(twoWeeksAgo);
+
+                
+        Condition rangeKeyCondition = new Condition()
+            .withComparisonOperator(ComparisonOperator.GT.toString())
+            .withAttributeValueList(new AttributeValue().withS(twoWeeksAgoStr.toString()));
+
+        
+       DynamoDBQueryExpression<Order> queryExpression = new DynamoDBQueryExpression<Order>()
+            .withHashKeyValues(new Order(shopId))
+            .withRangeKeyCondition("created_at", rangeKeyCondition);
+            
+        return mapper.query(Order.class, queryExpression);
+        
     }
 
     @Override
@@ -76,6 +103,12 @@ public class OrderDaoImpl implements OrderDao {
         mapper.delete(Order.class,new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
         status=true;
         return status;
+    }
+
+    @Override
+    public Order getOrderById(String id) throws Exception {
+        DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
+        return mapper.load(Order.class,id);
     }
 
     

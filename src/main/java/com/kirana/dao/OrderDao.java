@@ -6,6 +6,7 @@
 package com.kirana.dao;
 
 import com.kirana.model.Order;
+import com.kirana.model.Product;
 import java.util.List;
 
 /**
@@ -15,7 +16,8 @@ import java.util.List;
 public interface OrderDao {
 
 	public boolean addOrder(Order order) throws Exception;
-	public Order getOrderByShopId(long id,String createdAt) throws Exception;
+	public List<Order> getOrderByShopId(long id) throws Exception;
+        public Order getOrderById(String id) throws Exception;
         public List<Order> getOrderBetween(long id,String FromDate,String ToDate) throws Exception;
 	public boolean deleteOrder(long id,String createdAt) throws Exception;
         public boolean updateOrder(Order order) throws Exception;
