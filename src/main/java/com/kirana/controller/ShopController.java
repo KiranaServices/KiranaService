@@ -7,9 +7,6 @@ import com.kirana.controller.utils.ShopRegisterParamValidator;
 import com.kirana.utils.Response;
 import com.kirana.model.User;
 import com.kirana.services.UserServices;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

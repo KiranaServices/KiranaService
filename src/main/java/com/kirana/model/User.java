@@ -77,7 +77,7 @@ public class User  implements Serializable {
     }
     
     @ApiModelProperty(hidden = true,value = "Shop info of this user", required=false)
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name="shop_id",referencedColumnName = "id")
     private Shop shop;
 

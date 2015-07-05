@@ -70,7 +70,7 @@ public class Shop implements Serializable {
     
     @JsonIgnore
     @ApiModelProperty(hidden = true, required=false)
-    @OneToMany(mappedBy="shop")
+    @OneToMany(mappedBy="shop",cascade = CascadeType.ALL)
     private Set<Product> product;
     
     
