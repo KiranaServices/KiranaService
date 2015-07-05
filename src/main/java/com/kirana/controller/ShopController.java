@@ -94,9 +94,20 @@ public class ShopController {
             if (userToken != null && userToken.trim().length() == 0) {
                 throw new ParameterException("Query Syntax wrong");
             }
-            userServices.isAuthenticatedUser(userToken, Authorization.SHOP_DELETE);
-            shopServices.deleteShop(id);
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.SHOP_DELETE);
+            if(shopServices.getShopById(id)==null)
+              return new ResponseEntity<>(new Response(HttpStatus.NOT_FOUND.value(), "Shop Not found"), HttpStatus.NOT_FOUND);    
+
+            
+            if(shopServices.deleteShop(id))
+            {
+                user.setShop(null);
+                userServices.updateUser(user);
+            }
+            else
+                throw new Exception("Unknown error,not able to delete shop");
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(), "Shop deleted Successfully !"), HttpStatus.OK);
+            
         } catch (ParameterException pe) {
             log.warn(pe, pe);
             return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
@@ -108,7 +119,7 @@ public class ShopController {
             return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
         } catch (Exception e) {
             log.error(e, e);
-            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }

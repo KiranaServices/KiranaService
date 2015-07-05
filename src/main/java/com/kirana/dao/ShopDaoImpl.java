@@ -70,7 +70,7 @@ public class ShopDaoImpl implements ShopDao {
         session.delete(o);
         tx.commit();
         session.close();
-        return false;
+        return true;
     }
     
     /**

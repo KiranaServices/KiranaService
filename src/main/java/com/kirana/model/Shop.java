@@ -65,7 +65,7 @@ public class Shop implements Serializable {
     
     @JsonIgnore
     @ApiModelProperty(hidden = true, required=false)
-    @OneToMany(mappedBy="shop",fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @OneToMany(mappedBy="shop",fetch = FetchType.EAGER)
     private Set<User> user;
     
     @JsonIgnore
