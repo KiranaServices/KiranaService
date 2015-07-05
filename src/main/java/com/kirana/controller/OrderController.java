@@ -3,8 +3,9 @@ package com.kirana.controller;
 import com.kirana.controller.utils.AuthenticationException;
 import com.kirana.controller.utils.Authorization;
 import com.kirana.controller.utils.AuthorizationException;
+import com.kirana.controller.utils.OrderRegisterValidator;
+import com.kirana.controller.utils.ProductRegisterParamValidator;
 import com.kirana.model.Order;
-import com.kirana.model.Product;
 import com.kirana.model.Shop;
 import com.kirana.model.User;
 import com.kirana.services.OrderServices;
@@ -23,6 +24,7 @@ import com.kirana.utils.ParameterException;
 import com.kirana.utils.Response;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -30,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -66,7 +70,7 @@ public class OrderController {
     
     @ApiOperation(value = "View Orders of logged user")
     @RequestMapping(value = "/own", method = RequestMethod.GET)
-    public ResponseEntity home(@RequestParam("userToken") String userToken) {
+    public ResponseEntity own(@RequestParam("userToken") String userToken) {
         
         try {
             User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_OWN);
@@ -74,7 +78,7 @@ public class OrderController {
             Shop shop = user.getShop();
             if(user.getShop()==null)
                     return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
-            userList.addAll(orderServices.getOrderByShopId(shop.getId(),null));
+            userList.addAll(orderServices.getOrderByShopId(shop.getId()));
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,userList), HttpStatus.OK);
         } catch (ParameterException pe) {
             log.warn(pe, pe);
@@ -90,19 +94,19 @@ public class OrderController {
             return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    @ApiOperation(value = "create an order", notes = "order ex: created_at,updated_at : yyyy-MM-dd'T'HH:mm:ss.SSS'Z' --> 2001-07-04T12:08:56.235-0700, ")
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public @ResponseBody
-    ResponseEntity addOrder(@RequestParam("userToken") String userToken,@Validated @RequestBody Order order) {
-
+    
+    
+    @RequestMapping(value = "/createdAt", method = RequestMethod.GET)
+    public ResponseEntity getSpecificOrder(@ApiParam(value = "in format yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") @RequestParam("createdAt") String createdAt,@RequestParam("userToken") String userToken) {
+        
         try {
-            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_CREATE);
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_OWN);
+            List<Order> userList = new ArrayList<>();
             Shop shop = user.getShop();
-            if(shop==null)
-                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"User doesn't has shop"), HttpStatus.BAD_REQUEST);
-            order.setShopId(shop.getId());
-            orderServices.addOrder(order);
+            if(user.getShop()==null)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
+            Order order = orderServices.getOrderByCreatedAt(shop.getId(), createdAt);
+
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,order), HttpStatus.OK);
         } catch (ParameterException pe) {
             log.warn(pe, pe);
@@ -119,4 +123,96 @@ public class OrderController {
         }
     }
 
+    @ApiOperation(value = "create an order", notes = "order ex: created_at,updated_at : yyyy-MM-dd'T'HH:mm:ss.SSS'Z' --> 2001-07-04T12:08:56.235Z, ")
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    public @ResponseBody
+    ResponseEntity addOrder(@RequestParam("userToken") String userToken,@Validated @RequestBody Order order) {
+
+        try {
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_CREATE);
+            Shop shop = user.getShop();
+            if(shop==null)
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"User doesn't has shop"), HttpStatus.BAD_REQUEST);
+
+            BeanPropertyBindingResult result = new BeanPropertyBindingResult(order, "Order");
+            ValidationUtils.invokeValidator(new OrderRegisterValidator(productServices.getProductListByShopId(shop.getId())), order, result);
+            if (result.getErrorCount() >= 1) {
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
+            }
+            order.setShopId(shop.getId());
+            
+            log.info("status :"+orderServices.addOrder(order));
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,order), HttpStatus.OK);
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    
+    @ApiOperation(value = "Delete specific order of  user")
+    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
+    public ResponseEntity deleteOrder(@ApiParam(value = "in format yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") @RequestParam("createdAt") String createdAt,@RequestParam("userToken") String userToken) {
+        
+        try {
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_OWN);
+            List<Order> userList = new ArrayList<>();
+            Shop shop = user.getShop();
+            if(user.getShop()==null)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
+            boolean status =orderServices.deleteOrder(shop.getId(), createdAt);
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,status), HttpStatus.OK);
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+
+    @ApiOperation(value = "View Orders between")
+    
+    @RequestMapping(value = "/between", method = RequestMethod.GET)
+    public ResponseEntity getBetween(@RequestParam("userToken") String userToken,@ApiParam(value = "in format yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") @RequestParam("FromDate") String FromDate,@ApiParam(value = "in format yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") @RequestParam("ToDate") String ToDate) {
+        
+        try {
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_OWN);
+            List<Order> userList = new ArrayList<>();
+            Shop shop = user.getShop();
+            if(user.getShop()==null)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
+            userList.addAll(orderServices.getOrderBetween(user.getShop().getId(),FromDate,ToDate));
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,userList), HttpStatus.OK);
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
 }

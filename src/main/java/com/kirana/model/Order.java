@@ -35,7 +35,10 @@ public  class Order implements Serializable {
     private String updatedAt;
     
     @ApiModelProperty(notes = "Hash of productid and quantity, ex: {'idly':1,'porotta':2}")
-    private HashMap<String,Integer> list;
+    private HashMap<String,Integer> orderList;
+    
+    @ApiModelProperty(notes = "Extra info like geo location....")
+    private HashMap<String,String> extraInfo;
 
     public Order(Long shopId) {
         this.shopId=shopId;
@@ -43,9 +46,15 @@ public  class Order implements Serializable {
 
     public Order() {
     }
+
+    @DynamoDBMarshalling(marshallerClass = OrderListConverter.class) 
+    public HashMap<String, Integer> getOrderList() {return orderList; }
+    public void setOrderList(HashMap<String, Integer> orderList) {this.orderList = orderList; }
+
     
-    
-    
+    @DynamoDBMarshalling(marshallerClass = ExtraInfoConverter.class) 
+    public HashMap<String, String> getExtraInfo() {return extraInfo;}
+    public void setExtraInfo(HashMap<String, String> extraInfo) {this.extraInfo = extraInfo; }
     
     @DynamoDBRangeKey(attributeName="created_at")
     public String getCreatedAt() { return createdAt; }
@@ -58,12 +67,9 @@ public  class Order implements Serializable {
     @DynamoDBAttribute(attributeName = "updated_at")
     public String getUpdatedAt() {return updatedAt; }
     public void setUpdatedAt(String updatedAt) {this.updatedAt = updatedAt; }
+   
     
-    @DynamoDBMarshalling(marshallerClass = OrderListConverter.class) 
-    public HashMap<String,Integer> getOrderList() { return list; }
-    public void setOrderList(HashMap<String,Integer> list) { this.list = list; }
-
-    
+     
     @Override
     public String toString() {
         return "Order{" + "shopId=" + shopId + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
@@ -72,7 +78,6 @@ public  class Order implements Serializable {
     
     
     static public class OrderListConverter implements DynamoDBMarshaller<HashMap<String,Integer>> {
-
         @Override
         public String marshall(HashMap<String,Integer> getterReturnResult) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -81,14 +86,29 @@ public  class Order implements Serializable {
             xmlEncoder.flush();
              return bos.toString();
         }
-
         @Override
         public HashMap<String,Integer> unmarshall(Class<HashMap<String,Integer>> clazz, String obj) {
             XMLDecoder xmlDecoder = new XMLDecoder(new ByteArrayInputStream(obj.getBytes()));
             HashMap<String,Integer> list = (HashMap<String,Integer>) xmlDecoder.readObject();
             return list;
         }
-        
+    }
+    
+    static public class ExtraInfoConverter implements DynamoDBMarshaller<HashMap<String,String>> {
+        @Override
+        public String marshall(HashMap<String,String> getterReturnResult) {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            XMLEncoder xmlEncoder = new XMLEncoder(bos);
+            xmlEncoder.writeObject(getterReturnResult);
+            xmlEncoder.flush();
+             return bos.toString();
+        }
+        @Override
+        public HashMap<String,String> unmarshall(Class<HashMap<String,String>> clazz, String obj) {
+            XMLDecoder xmlDecoder = new XMLDecoder(new ByteArrayInputStream(obj.getBytes()));
+            HashMap<String,String> list = (HashMap<String,String>) xmlDecoder.readObject();
+            return list;
+        }
     }
     
 

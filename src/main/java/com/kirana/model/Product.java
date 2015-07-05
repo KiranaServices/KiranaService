@@ -30,7 +30,7 @@ public class Product implements Serializable {
     }
 
     public Product(String product_id, String quantity, String price, String discount, String taxBracket, Shop shop) throws NumberFormatException {
-        this.product_id = product_id;
+        this.productCode = product_id;
         this.quantity = Float.valueOf(quantity);
         this.price = Float.valueOf(price);
         this.discount = Float.valueOf(discount);
@@ -45,7 +45,7 @@ public class Product implements Serializable {
     private long id;
 
     @Column(name = "product_id",unique = true)
-    private String product_id;
+    private String productCode;
     
     @Column(name = "quantity",precision = 2)
     private float quantity;
@@ -100,12 +100,12 @@ public class Product implements Serializable {
     }
 
 
-    public String getProduct_id() {
-        return product_id;
+    public String getProductCode() {
+        return productCode;
     }
 
-    public void setProduct_id(String product_id) {
-        this.product_id = product_id;
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 
     public float getQuantity() {

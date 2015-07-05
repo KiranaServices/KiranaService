@@ -31,6 +31,8 @@ public enum Authorization {
     PRODUCT_REGISTER(ADMIN,USER),
     PRODUCT_OWN(ADMIN,USER),
     ORDER_CREATE(ADMIN,USER),
+    ORDER_DELETE(ADMIN),
+    ORDER_MODIFY(ADMIN),
     ORDER_OWN(ADMIN,USER);
     
     private final UserRole[] roles;

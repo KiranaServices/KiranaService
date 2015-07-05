@@ -69,12 +69,12 @@ public class ProductController {
         
         try {
             User user = userServices.isAuthenticatedUser(userToken, Authorization.PRODUCT_OWN);
-            List<Product> userList = new ArrayList<>();
+            List<Product> productList = new ArrayList<>();
             Shop shop = user.getShop();
             if(user.getShop()==null)
                     return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
-            userList.addAll(productServices.getProductListByShopId(shop.getId()));
-            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,userList), HttpStatus.OK);
+            productList.addAll(productServices.getProductListByShopId(shop.getId()));
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,productList), HttpStatus.OK);
         } catch (ParameterException pe) {
             log.warn(pe, pe);
             return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
@@ -105,7 +105,7 @@ public class ProductController {
                 File productsFile = File.createTempFile(file.getName(), "csv");
                 file.transferTo(productsFile);
                 ProductRegisterParam param = new ProductRegisterParam(userToken,productsFile);
-                BeanPropertyBindingResult result = new BeanPropertyBindingResult(param, "login");
+                BeanPropertyBindingResult result = new BeanPropertyBindingResult(param, "productParams");
                 ValidationUtils.invokeValidator(new ProductRegisterParamValidator(), param, result);
                 if (result.getErrorCount() >= 1) {
                     return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);

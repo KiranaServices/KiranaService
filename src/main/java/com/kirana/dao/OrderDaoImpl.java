@@ -61,15 +61,15 @@ public class OrderDaoImpl implements OrderDao {
     public List<Order> getOrderByShopId(long shopId) throws Exception {
         DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
         
-        Date twoWeeksAgo = new Date();
+        Date startTime = new Date(0L);
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String twoWeeksAgoStr = dateFormatter.format(twoWeeksAgo);
+        String startTimeStr = dateFormatter.format(startTime);
 
                 
         Condition rangeKeyCondition = new Condition()
             .withComparisonOperator(ComparisonOperator.GT.toString())
-            .withAttributeValueList(new AttributeValue().withS(twoWeeksAgoStr.toString()));
+            .withAttributeValueList(new AttributeValue().withS(startTimeStr));
 
         
        DynamoDBQueryExpression<Order> queryExpression = new DynamoDBQueryExpression<Order>()
@@ -91,7 +91,7 @@ public class OrderDaoImpl implements OrderDao {
         replyKey.setShopId(id);
         DynamoDBQueryExpression<Order> queryExpression = new DynamoDBQueryExpression<Order>()
             .withHashKeyValues(replyKey)
-            .withRangeKeyCondition("ReplyDateTime", rangeKeyCondition);
+            .withRangeKeyCondition("created_at", rangeKeyCondition);
         List<Order> latestReplies = mapper.query(Order.class, queryExpression);
         return latestReplies;
     }
@@ -100,8 +100,12 @@ public class OrderDaoImpl implements OrderDao {
     public boolean deleteOrder(long id, String createdAt) throws Exception {
         boolean status=false;
         DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
-        mapper.delete(Order.class,new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
-        status=true;
+        Order order = mapper.load(Order.class,id,createdAt);
+        if(order!=null)
+        {
+            mapper.delete(order,new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
+            status=true;
+        }   
         return status;
     }
 
@@ -111,5 +115,15 @@ public class OrderDaoImpl implements OrderDao {
         return mapper.load(Order.class,id);
     }
 
+    @Override
+    public Order getOrderByCreatedAt(long id, String createdAt) throws Exception {
+        DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
+        log.info("id : "+id+"  createdat:"+createdAt);
+        return mapper.load(Order.class,id,createdAt);
+    }
+
+    // 2001-07-04T12:08:57.235Z
+    // 2001-07-04T12:08:57.235Z
+    // 2001-07-04T12:08:57
     
 }

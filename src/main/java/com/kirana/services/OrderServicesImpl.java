@@ -38,7 +38,7 @@ public class OrderServicesImpl implements OrderServices{
     }
 
     @Override
-    public List<Order> getOrderByShopId(long id, String createdAt) throws Exception {
+    public List<Order> getOrderByShopId(long id) throws Exception {
         return orderDao.getOrderByShopId(id);
     }
 
@@ -60,6 +60,12 @@ public class OrderServicesImpl implements OrderServices{
     @Override
     public boolean updateOrder(Order order) throws Exception {
         return orderDao.updateOrder(order);
+    }
+
+
+    @Override
+    public Order getOrderByCreatedAt(long id, String createdAt) throws Exception {
+        return orderDao.getOrderByCreatedAt(id, createdAt);
     }
     
     

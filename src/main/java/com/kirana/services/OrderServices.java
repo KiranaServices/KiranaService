@@ -15,7 +15,8 @@ import java.util.List;
 public interface OrderServices {
 
     public boolean addOrder(Order order) throws Exception;
-    public List<Order> getOrderByShopId(long id,String createdAt) throws Exception;
+    public List<Order> getOrderByShopId(long id) throws Exception;
+    public Order getOrderByCreatedAt(long id,String createdAt) throws Exception;
     public Order getOrderById(String id) throws Exception;
     public List<Order> getOrderBetween(long id,String FromDate,String ToDate) throws Exception;
     public boolean deleteOrder(long id,String createdAt) throws Exception;
