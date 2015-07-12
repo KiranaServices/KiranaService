@@ -6,9 +6,15 @@
 package com.kirana.services;
 
 import au.com.bytecode.opencsv.CSVReader;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.kirana.dao.ProductDao;
 import com.kirana.model.Product;
 import com.kirana.model.Shop;
+import static com.kirana.utils.GlobalConfig.S3_BUCKET_NAME;
 import com.kirana.utils.ParameterException;
 import java.io.File;
 import java.io.FileReader;
@@ -119,6 +125,16 @@ public class ProductServicesImpl implements ProductServices{
         
         return product;
         
+    }
+
+    @Override
+    public boolean uploadProductImage(File productCsv, Shop shop,String productCode) throws Exception {
+        AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider("kirana"));
+        s3client.setRegion(Region.getRegion(Regions.AP_SOUTHEAST_1));
+        if(!s3client.doesBucketExist(S3_BUCKET_NAME))
+            s3client.createBucket(S3_BUCKET_NAME);
+        s3client.putObject(S3_BUCKET_NAME,shop.getName()+"/"+productCode, productCsv);
+        return true;
     }
 
 }

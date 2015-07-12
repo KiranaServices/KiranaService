@@ -1,5 +1,6 @@
 package com.kirana.controller;
 
+import com.amazonaws.SDKGlobalConfiguration;
 import com.kirana.controller.utils.AuthenticationException;
 import com.kirana.controller.utils.Authorization;
 import com.kirana.controller.utils.AuthorizationException;
@@ -23,9 +24,12 @@ import com.kirana.utils.ParameterException;
 import com.kirana.utils.Response;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,6 +48,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductController {
 
     private static final Logger log = Logger.getLogger(ProductController.class);
+//    to do
+//    static{
+//        System.setProperty(SDKGlobalConfiguration.ENABLE_S3_SIGV4_SYSTEM_PROPERTY, "true");
+//                System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR, "AKIAJ666LALJZHA6THGQ");
+//                System.setProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR, "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");
+//    }
 
     @Autowired
     private UserServices userServices;
@@ -114,6 +124,60 @@ public class ProductController {
                 return new ResponseEntity<>(new Response(HttpStatus.OK.value(), "Product added Successfully !"), HttpStatus.OK);
             } else {
                 throw new ParameterException("csv file required");
+            }
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    
+    
+    @ApiOperation(value = "upload product image file", notes = "")
+    @RequestMapping(value = "/image/upload", method = RequestMethod.POST)
+    public @ResponseBody
+    ResponseEntity handleImageFileUpload(@RequestParam("userToken") String userToken,
+            @RequestParam("file") MultipartFile file,@RequestParam("productCode") String productCode) {
+
+        try {
+            if (!file.isEmpty()) {
+                User user = userServices.isAuthenticatedUser(userToken, Authorization.SHOP_DELETE);
+                if(user.getShop()==null)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
+                StringBuilder fileContent = new StringBuilder();
+                File productImageFile = File.createTempFile(file.getName(), "jpg");
+                file.transferTo(productImageFile);
+                 boolean valid=true;
+                try {
+                    BufferedImage image = ImageIO.read(productImageFile);
+                    if (image == null) { valid = false; }
+                } catch (IOException ex) {
+                    valid = false;
+                }
+                
+                if(!valid)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"Not an image"), HttpStatus.BAD_REQUEST);
+                
+//                ProductRegisterParam param = new ProductRegisterParam(userToken,productImageFile);
+//                BeanPropertyBindingResult result = new BeanPropertyBindingResult(param, "productParams");
+//                ValidationUtils.invokeValidator(new ProductRegisterParamValidator(), param, result);
+//                if (result.getErrorCount() >= 1) {
+//                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
+//                }
+                
+                productServices.uploadProductImage(productImageFile,user.getShop(),productCode);
+                return new ResponseEntity<>(new Response(HttpStatus.OK.value(), "Image uploaded Successfully "), HttpStatus.OK);
+            } else {
+                throw new ParameterException("Image file required");
             }
         } catch (ParameterException pe) {
             log.warn(pe, pe);

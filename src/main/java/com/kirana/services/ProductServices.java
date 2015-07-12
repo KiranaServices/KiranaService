@@ -32,4 +32,6 @@ public interface ProductServices {
     
     public boolean addProductBulk(File productCsv,Shop shop) throws Exception;
     
+    public boolean uploadProductImage(File productCsv,Shop shop,String productCode) throws Exception;
+    
 }
