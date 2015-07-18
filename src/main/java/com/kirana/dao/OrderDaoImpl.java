@@ -6,12 +6,14 @@
 package com.kirana.dao;
 
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
@@ -30,7 +32,7 @@ public class OrderDaoImpl implements OrderDao {
 
     private static final Logger log = Logger.getLogger(OrderDaoImpl.class);
     private static final AmazonDynamoDBClient dbClient =
-        new AmazonDynamoDBClient(new ClasspathPropertiesFileCredentialsProvider());
+        new AmazonDynamoDBClient(new ProfileCredentialsProvider("kirana-dynamodb"));
     
     static{
     dbClient.setRegion(Region.getRegion(Regions.AP_SOUTHEAST_1));     
@@ -75,6 +77,7 @@ public class OrderDaoImpl implements OrderDao {
        DynamoDBQueryExpression<Order> queryExpression = new DynamoDBQueryExpression<Order>()
             .withHashKeyValues(new Order(shopId))
             .withRangeKeyCondition("created_at", rangeKeyCondition);
+       queryExpression.setConsistentRead(false);
             
         return mapper.query(Order.class, queryExpression);
         
@@ -87,20 +90,19 @@ public class OrderDaoImpl implements OrderDao {
         Condition rangeKeyCondition = new Condition()
             .withComparisonOperator(ComparisonOperator.BETWEEN.toString())
             .withAttributeValueList(new AttributeValue().withS(FromDate),new AttributeValue().withS(ToDate));
-        Order replyKey = new Order();
-        replyKey.setShopId(id);
         DynamoDBQueryExpression<Order> queryExpression = new DynamoDBQueryExpression<Order>()
-            .withHashKeyValues(replyKey)
+            .withHashKeyValues(new Order(id))
             .withRangeKeyCondition("created_at", rangeKeyCondition);
+        queryExpression.setConsistentRead(false);
         List<Order> latestReplies = mapper.query(Order.class, queryExpression);
         return latestReplies;
     }
 
     @Override
-    public boolean deleteOrder(long id, String createdAt) throws Exception {
+    public boolean deleteOrder(String id) throws Exception {
         boolean status=false;
         DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
-        Order order = mapper.load(Order.class,id,createdAt);
+        Order order = mapper.load(Order.class,id);
         if(order!=null)
         {
             mapper.delete(order,new DynamoDBMapperConfig(DynamoDBMapperConfig.SaveBehavior.CLOBBER));
@@ -119,7 +121,27 @@ public class OrderDaoImpl implements OrderDao {
     public Order getOrderByCreatedAt(long id, String createdAt) throws Exception {
         DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
         log.info("id : "+id+"  createdat:"+createdAt);
-        return mapper.load(Order.class,id,createdAt);
+        
+        
+        Condition rangeKeyCondition = new Condition()
+            .withComparisonOperator(ComparisonOperator.EQ.toString())
+            .withAttributeValueList(new AttributeValue().withS(createdAt));
+
+        
+       DynamoDBQueryExpression<Order> queryExpression = new DynamoDBQueryExpression<Order>()
+            .withHashKeyValues(new Order(id))
+            .withRangeKeyCondition("created_at", rangeKeyCondition);
+       queryExpression.setConsistentRead(false);
+            
+       
+        PaginatedQueryList list = mapper.query(Order.class, queryExpression);
+        if(list!=null && !list.isEmpty())
+            return (Order) list.get(0);
+        else
+            return null;
+//        return mapper.query(Order.class, queryExpression).get(1);
+        
+//        return mapper.load(Order.class,id,createdAt);
     }
 
     // 2001-07-04T12:08:57.235Z

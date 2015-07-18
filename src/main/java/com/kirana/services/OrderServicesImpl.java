@@ -53,8 +53,8 @@ public class OrderServicesImpl implements OrderServices{
     }
 
     @Override
-    public boolean deleteOrder(long id, String createdAt) throws Exception {
-        return orderDao.deleteOrder(id, createdAt);
+    public boolean deleteOrder(String id) throws Exception {
+        return orderDao.deleteOrder(id);
     }
 
     @Override

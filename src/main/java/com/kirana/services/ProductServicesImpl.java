@@ -129,7 +129,7 @@ public class ProductServicesImpl implements ProductServices{
 
     @Override
     public boolean uploadProductImage(File productCsv, Shop shop,String productCode) throws Exception {
-        AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider("kirana"));
+        AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider("kirana-s3"));
         s3client.setRegion(Region.getRegion(Regions.AP_SOUTHEAST_1));
         if(!s3client.doesBucketExist(S3_BUCKET_NAME))
             s3client.createBucket(S3_BUCKET_NAME);

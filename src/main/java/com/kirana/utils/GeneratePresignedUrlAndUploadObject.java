@@ -14,7 +14,10 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SDKGlobalConfiguration;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.profile.ProfilesConfigFile;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -31,6 +34,8 @@ public class GeneratePresignedUrlAndUploadObject {
                 System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR, "AKIAJ666LALJZHA6THGQ");
                 System.setProperty(SDKGlobalConfiguration.SECRET_KEY_ENV_VAR, "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");
 //		AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider("kirana"));
+                
+                ProfilesConfigFile profile = new ProfilesConfigFile("AwsCredentials.properties");
                 AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider());
                 s3client.setRegion(Region.getRegion(Regions.AP_SOUTHEAST_1));
                 

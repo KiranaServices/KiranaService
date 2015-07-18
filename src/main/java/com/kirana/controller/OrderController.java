@@ -35,6 +35,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
@@ -122,6 +123,42 @@ public class OrderController {
             return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
+    
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    public ResponseEntity getOrderById(@ApiParam(value = "Unique order Id") @PathVariable("id") String id,@RequestParam("userToken") String userToken) {
+        
+        try {
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_OWN);
+            List<Order> userList = new ArrayList<>();
+            Shop shop = user.getShop();
+            if(shop==null)
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
+            Order order = orderServices.getOrderById(id);
+            
+            if(order!=null)
+            {
+                if(order.getShopId()!=shop.getId())
+                   return new ResponseEntity<>(new Response(HttpStatus.NOT_FOUND.value(),"Order Not found"), HttpStatus.NOT_FOUND);
+                else
+                   return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,order), HttpStatus.OK);
+            }
+            else
+                return new ResponseEntity<>(new Response(HttpStatus.NOT_FOUND.value(),"Order Not found"), HttpStatus.NOT_FOUND);
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @ApiOperation(value = "create an order", notes = "order ex: created_at,updated_at : yyyy-MM-dd'T'HH:mm:ss.SSS'Z' --> 2001-07-04T12:08:56.235Z, ")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
@@ -160,16 +197,17 @@ public class OrderController {
     
     
     @ApiOperation(value = "Delete specific order of  user")
-    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public ResponseEntity deleteOrder(@ApiParam(value = "in format yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") @RequestParam("createdAt") String createdAt,@RequestParam("userToken") String userToken) {
+    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity deleteOrder(@ApiParam(value = "Unique order Id") @PathVariable("id") String id,@RequestParam("userToken") String userToken) {
         
         try {
-            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_OWN);
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_DELETE);
             List<Order> userList = new ArrayList<>();
             Shop shop = user.getShop();
             if(user.getShop()==null)
                     return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
-            boolean status =orderServices.deleteOrder(shop.getId(), createdAt);
+            
+            boolean status =orderServices.deleteOrder(id);
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,status), HttpStatus.OK);
         } catch (ParameterException pe) {
             log.warn(pe, pe);

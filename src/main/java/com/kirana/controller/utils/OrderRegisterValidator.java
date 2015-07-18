@@ -53,9 +53,17 @@ public class OrderRegisterValidator implements Validator {
                 logger.info("product :"+product.getProductCode());
             productCodeList.add(product.getProductCode());
             });
+//            logger.info("order.getOrderList() : "+order.getOrderList().keySet().toString());
+//            
+//            for(String productCode:order.getOrderList().keySet())
+//            {
+//                logger.info("productCode : "+productCode);
+//                if(!productCodeList.contains(productCode))
+//                    errors.rejectValue("orderlist","Invalid product code in orderList");
+//            }
             order.getOrderList().keySet().forEach((String productCode) -> {
                 if(!productCodeList.contains(productCode))
-                    errors.rejectValue("orderlist",productCode+" not an valid product code");
+                    errors.rejectValue("orderList",productCode+" not an valid product code");
             });
 
         }
