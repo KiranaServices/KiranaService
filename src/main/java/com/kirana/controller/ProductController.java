@@ -83,7 +83,7 @@ public class ProductController {
             Shop shop = user.getShop();
             if(user.getShop()==null)
                     return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
-            productList.addAll(productServices.getProductListByShopId(shop.getId()));
+            productList.addAll(productServices.getProductListByShopId(shop,true));
             return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,productList), HttpStatus.OK);
         } catch (ParameterException pe) {
             log.warn(pe, pe);

@@ -60,3 +60,7 @@ CREATE TABLE `employee_db`.`users` (
   `shop_id` INT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `product_id_UNIQUE` (`product_id` ASC));
+
+
+ALTER TABLE `kirana`.`users` 
+CHANGE COLUMN `updated_at` `updated_at` TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00' ;

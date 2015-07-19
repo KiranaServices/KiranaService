@@ -22,7 +22,7 @@ public interface ProductServices {
 
     public List<Product> getProductList() throws Exception;
     
-    public List<Product> getProductListByShopId(long shopId) throws Exception;
+    public List<Product> getProductListByShopId(Shop shop,boolean isImageRequired) throws Exception;
 
     public boolean deleteProduct(long id) throws Exception;
     

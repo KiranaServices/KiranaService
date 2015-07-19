@@ -172,7 +172,7 @@ public class OrderController {
                 return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"User doesn't has shop"), HttpStatus.BAD_REQUEST);
 
             BeanPropertyBindingResult result = new BeanPropertyBindingResult(order, "Order");
-            ValidationUtils.invokeValidator(new OrderRegisterValidator(productServices.getProductListByShopId(shop.getId())), order, result);
+            ValidationUtils.invokeValidator(new OrderRegisterValidator(productServices.getProductListByShopId(shop,false)), order, result);
             if (result.getErrorCount() >= 1) {
                 return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
             }

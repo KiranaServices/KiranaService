@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  *
@@ -59,6 +60,9 @@ public class Product implements Serializable {
     @Column(name = "tax_bracket",precision = 2)
     private float taxBracket;
     
+    @ApiModelProperty(hidden = true,value = "productCodeImageUrl", required=false)
+    @Transient
+    private String productCodeImageUrl;
 
     @JsonIgnore
     @ManyToOne
@@ -140,6 +144,16 @@ public class Product implements Serializable {
         this.taxBracket = taxBracket;
     }
 
+    public String getProductCodeImageUrl() {
+        return productCodeImageUrl;
+    }
+
+    public void setProductCodeImageUrl(String productCodeImageUrl) {
+        this.productCodeImageUrl = productCodeImageUrl;
+    }
+
+    
+    
     @Override
     public String toString() {
         return "Product{" + "id=" + id + ", quantity=" + quantity + ", price=" + price + ", discount=" + discount + ", taxBracket=" + taxBracket + '}';
