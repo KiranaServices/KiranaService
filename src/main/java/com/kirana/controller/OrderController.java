@@ -196,6 +196,53 @@ public class OrderController {
     }
     
     
+    
+        @ApiOperation(value = "update an order", notes = "order ex: created_at,updated_at : yyyy-MM-dd'T'HH:mm:ss.SSS'Z' --> 2001-07-04T12:08:56.235Z, ")
+    @RequestMapping(value = "/update", method = RequestMethod.PUT)
+    public @ResponseBody
+    ResponseEntity updateOrder(@RequestParam("userToken") String userToken,@RequestParam("orderId") String orderId,@Validated @RequestBody Order order) {
+
+        try {
+            User user = userServices.isAuthenticatedUser(userToken, Authorization.ORDER_MODIFY);
+            Shop shop = user.getShop();
+            if(shop==null)
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"User doesn't has shop"), HttpStatus.BAD_REQUEST);
+
+            order.setIsOrderCreate(false);
+            BeanPropertyBindingResult result = new BeanPropertyBindingResult(order, "Order");
+            ValidationUtils.invokeValidator(new OrderRegisterValidator(productServices.getProductListByShopId(shop,false)), order, result);
+            if (result.getErrorCount() >= 1) {
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
+            }
+            if(order.getShopId() !=0 && order.getShopId() != shop.getId())
+            {
+                log.info("wrong shop id :"+order.getShopId());
+                return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"shop number doesn't match"), HttpStatus.BAD_REQUEST);
+            }
+            else
+                order.setShopId(shop.getId());
+            
+            Order oldOrder = orderServices.getOrderById(orderId);
+            if (null==oldOrder)
+                return new ResponseEntity<>(new Response(HttpStatus.NOT_FOUND.value(),"Order Not found"), HttpStatus.NOT_FOUND);
+             order.setId(orderId);         
+            log.info("status :"+orderServices.updateOrder(order));
+            return new ResponseEntity<>(new Response(HttpStatus.OK.value(),GlobalConfig.MINOR_OK,GlobalConfig.SUCCESS_MESSAGE,order), HttpStatus.OK);
+        } catch (ParameterException pe) {
+            log.warn(pe, pe);
+            return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(), pe.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (AuthenticationException ate) {
+            log.warn(ate, ate);
+            return new ResponseEntity<>(new Response(HttpStatus.UNAUTHORIZED.value(), ate.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (AuthorizationException aue) {
+            log.warn(aue, aue);
+            return new ResponseEntity<>(new Response(HttpStatus.FORBIDDEN.value(), aue.getMessage()), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error(e, e);
+            return new ResponseEntity<>(new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), GlobalConfig.FAILURE_MESSAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     @ApiOperation(value = "Delete specific order of  user")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
     public ResponseEntity deleteOrder(@ApiParam(value = "Unique order Id") @PathVariable("id") String id,@RequestParam("userToken") String userToken) {

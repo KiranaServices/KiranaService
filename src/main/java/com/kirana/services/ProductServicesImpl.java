@@ -97,7 +97,7 @@ public class ProductServicesImpl implements ProductServices {
 
     @Override
     public boolean checkProductExistByName(String name) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+       return  productDao.checkProductExistByName(name);
     }
 
     @Override

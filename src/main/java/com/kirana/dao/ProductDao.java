@@ -27,5 +27,7 @@ public interface ProductDao {
     public boolean deleteProduct(long id) throws Exception;
 
     public boolean updateProduct(Product product) throws Exception;
+    
+    public boolean checkProductExistByName(String name) throws Exception ;
 
 }

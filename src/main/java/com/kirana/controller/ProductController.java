@@ -1,9 +1,10 @@
 package com.kirana.controller;
 
-import com.amazonaws.SDKGlobalConfiguration;
 import com.kirana.controller.utils.AuthenticationException;
 import com.kirana.controller.utils.Authorization;
 import com.kirana.controller.utils.AuthorizationException;
+import com.kirana.controller.utils.ProductImageParam;
+import com.kirana.controller.utils.ProductImageParamValidator;
 import com.kirana.controller.utils.ProductRegisterParam;
 import com.kirana.controller.utils.ProductRegisterParamValidator;
 import com.kirana.model.Product;
@@ -24,12 +25,9 @@ import com.kirana.utils.ParameterException;
 import com.kirana.utils.Response;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -153,26 +151,15 @@ public class ProductController {
                 User user = userServices.isAuthenticatedUser(userToken, Authorization.SHOP_DELETE);
                 if(user.getShop()==null)
                     return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"No shop created for this user"), HttpStatus.BAD_REQUEST);
-                StringBuilder fileContent = new StringBuilder();
                 File productImageFile = File.createTempFile(file.getName(), "jpg");
                 file.transferTo(productImageFile);
-                 boolean valid=true;
-                try {
-                    BufferedImage image = ImageIO.read(productImageFile);
-                    if (image == null) { valid = false; }
-                } catch (IOException ex) {
-                    valid = false;
+ 
+                ProductImageParam param = new ProductImageParam(productServices, productCode, productImageFile);
+                BeanPropertyBindingResult result = new BeanPropertyBindingResult(param, "productParams");
+                ValidationUtils.invokeValidator(new ProductImageParamValidator(), param, result);
+                if (result.getErrorCount() >= 1) {
+                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
                 }
-                
-                if(!valid)
-                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),"Not an image"), HttpStatus.BAD_REQUEST);
-                
-//                ProductRegisterParam param = new ProductRegisterParam(userToken,productImageFile);
-//                BeanPropertyBindingResult result = new BeanPropertyBindingResult(param, "productParams");
-//                ValidationUtils.invokeValidator(new ProductRegisterParamValidator(), param, result);
-//                if (result.getErrorCount() >= 1) {
-//                    return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST.value(),result.getAllErrors().toString()), HttpStatus.BAD_REQUEST);
-//                }
                 
                 productServices.uploadProductImage(productImageFile,user.getShop(),productCode);
                 return new ResponseEntity<>(new Response(HttpStatus.OK.value(), "Image uploaded Successfully "), HttpStatus.OK);

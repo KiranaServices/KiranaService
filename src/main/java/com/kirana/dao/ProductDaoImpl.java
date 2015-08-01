@@ -147,4 +147,30 @@ public class ProductDaoImpl implements ProductDao {
         return product;
     }
 
+    @Override
+    public boolean checkProductExistByName(String name) throws Exception {
+        
+         session = sessionFactory.openSession();
+         Product p=null;
+        try
+        {    
+            String hql = "FROM Product  where product_id=:name";
+            Query query = session.createQuery(hql);
+            query.setParameter("name",name);
+            try
+            {
+                 p = (Product)query.list().get(0);
+            }
+            catch(IndexOutOfBoundsException ex)
+            { 
+                log.warn(ex);
+            }
+        }
+        finally
+        {
+        session.close();
+        }
+        return p!=null;
+    }
+
 }

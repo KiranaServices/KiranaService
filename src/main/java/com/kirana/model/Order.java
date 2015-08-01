@@ -6,8 +6,8 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexHashKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIndexRangeKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMarshaller;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMarshalling;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBRangeKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
@@ -27,8 +27,8 @@ import java.util.HashMap;
 public  class Order implements Serializable {
     
     
-
-    @ApiModelProperty(hidden = true, required=false)
+  
+    @ApiModelProperty(hidden = true, required=false)    
     private String id;
     @ApiModelProperty(hidden = true, required=false)
     private long shopId;
@@ -46,11 +46,28 @@ public  class Order implements Serializable {
     @ApiModelProperty(notes = "Extra info like geo location....")
     private HashMap<String,String> extraInfo;
 
+    @JsonIgnore
+    @ApiModelProperty(hidden = true, required=false)
+    private boolean isOrderCreate;
+
+    public boolean isIsOrderCreate() {
+        return isOrderCreate;
+    }
+
+    public void setIsOrderCreate(boolean isOrderCreate) {
+        this.isOrderCreate = isOrderCreate;
+    }
+    
+    
+    
+    
     public Order(Long shopId) {
+        this.isOrderCreate = true;
         this.shopId=shopId;
     }
 
     public Order() {
+        this.isOrderCreate = true;
     }
 
     @DynamoDBMarshalling(marshallerClass = OrderListConverter.class) 
