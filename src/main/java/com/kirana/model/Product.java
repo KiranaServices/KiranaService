@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -39,6 +40,15 @@ public class Product implements Serializable {
         this.shop = shop;
     }
 
+    public Product( String productCode, String quantity, String price, String discount, String taxBracket, String productProperty, Shop shop) {
+        this.productCode = productCode;
+        this.quantity = Float.valueOf(quantity);
+        this.price = Float.valueOf(price);
+        this.discount = Float.valueOf(discount);
+        this.taxBracket = Float.valueOf(taxBracket);
+        this.productProperty = productProperty;
+        this.shop = shop;
+    }
     
     @Id
     @GeneratedValue
@@ -59,6 +69,10 @@ public class Product implements Serializable {
     
     @Column(name = "tax_bracket",precision = 2)
     private float taxBracket;
+    
+    
+    @Column(name = "product_property")
+    private String productProperty;
     
     @ApiModelProperty(hidden = true,value = "productCodeImageUrl", required=false)
     @Transient

@@ -64,3 +64,6 @@ CREATE TABLE `employee_db`.`users` (
 
 ALTER TABLE `kirana`.`users` 
 CHANGE COLUMN `updated_at` `updated_at` TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00' ;
+
+ALTER TABLE `kirana`.`products` 
+ADD COLUMN `product_property` VARCHAR(350) NULL DEFAULT NULL AFTER `shop_id`;

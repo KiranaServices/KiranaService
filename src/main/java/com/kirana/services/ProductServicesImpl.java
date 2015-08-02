@@ -60,8 +60,13 @@ public class ProductServicesImpl implements ProductServices {
         try {
             reader.readNext(); // skip the header part  
             while ((productLine = reader.readNext()) != null) {
-                list.add(new Product(productLine[0], productLine[1], productLine[2], productLine[3], productLine[4], shop));
-                log.info(productLine[0] + ":" + productLine[1] + ": etc...");
+                if(productLine.length>5 && productLine[5]!=null)
+                {
+                    list.add(new Product(productLine[0], productLine[1], productLine[2], productLine[3], productLine[4],productLine[5], shop));
+                    log.info(productLine[0] + ":" + productLine[1] + ": etc..."+productLine[5]);
+                }
+                else
+                    list.add(new Product(productLine[0], productLine[1], productLine[2], productLine[3], productLine[4], shop));
             }
             return productDao.addProductBulk(list);
         } catch (NumberFormatException e) {

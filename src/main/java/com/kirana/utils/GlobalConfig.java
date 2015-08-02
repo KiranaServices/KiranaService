@@ -17,7 +17,7 @@ public final class GlobalConfig {
     public static final String S3_BUCKET_NAME="kirana-services";
     public static final String SUCCESS_MESSAGE="Success";
     public static final String FAILURE_MESSAGE="Failure";
-    public static final String PRODUCT_CSV_FIRST_LINE="product_id,quantity,price,discount,tax_bracket";
+    public static final String PRODUCT_CSV_FIRST_LINE="product_id,quantity,price,discount,tax_bracket,product_property";
     
     public static  final String[] USERROLES = {"USER","ADMIN"};
     
